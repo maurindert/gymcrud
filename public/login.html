@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso — GymCRUD</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+
+    <div class="encabezado-pagina">
+        <h1>GymCRUD — Sistema de Gestión</h1>
+        <p>Programación 2 (PR2) · Universidad Columbia del Paraguay</p>
+    </div>
+
+    <div class="contenedor-central">
+        <div class="tarjeta-formulario">
+
+            <h2>Acceso al Sistema</h2>
+
+            <form id="formularioLogin">
+                <input type="text" id="campoUsuario" class="campo-formulario" placeholder="Usuario" required
+                    autocomplete="username">
+                <input type="password" id="campoClave" class="campo-formulario" placeholder="Contraseña" required
+                    autocomplete="current-password">
+                <button type="submit" class="boton-principal">Ingresar</button>
+            </form>
+
+            <div id="areaDeResultado" class="area-mensaje"></div>
+
+        </div>
+    </div>
+
+    <script>
+        const formularioLogin = document.getElementById('formularioLogin');
+        const campoUsuario = document.getElementById('campoUsuario');
+        const campoClave = document.getElementById('campoClave');
+        const areaDeResultado = document.getElementById('areaDeResultado');
+
+        function mostrarMensaje(texto, tipo) {
+            areaDeResultado.textContent = texto;
+            areaDeResultado.className = 'area-mensaje ' + tipo;
+        }
+
+        async function iniciarSesion(evento) {
+            evento.preventDefault();
+
+            const credenciales = {
+                usuario: campoUsuario.value.trim(),
+                clave: campoClave.value
+            };
+
+            try {
+                const respuesta = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(credenciales)
+                });
+                const datosRecibidos = await respuesta.json();
+
+                if (datosRecibidos.success) {
+                    sessionStorage.setItem('usuarioActivo', datosRecibidos.usuario);
+                    mostrarMensaje('Acceso correcto. Redirigiendo...', 'exito');
+                    setTimeout(() => { window.location.href = 'menu.html'; }, 800);
+                } else {
+                    mostrarMensaje(datosRecibidos.message, 'error');
+                    campoClave.value = '';
+                    campoClave.focus();
+                }
+
+            } catch (err) {
+                mostrarMensaje('No se pudo conectar con el servidor.', 'error');
+            }
+        }
+
+        formularioLogin.addEventListener('submit', iniciarSesion);
+    </script>
+
+</body>
+
+</html>
