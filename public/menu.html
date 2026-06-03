@@ -5,10 +5,126 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu — GymCRUD</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .bienvenida {
+            margin-top: 28px;
+            font-size: 1rem;
+            color: var(--color-texto-medio);
+        }
+
+        .bienvenida span {
+            color: var(--color-amarillo-claro);
+            font-weight: 700;
+        }
+
+        .contenedor-tarjetas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 32px 16px;
+            max-width: 860px;
+            width: 100%;
+        }
+
+        .tarjeta-menu {
+            background: var(--color-superficie);
+            border: 1px solid var(--color-borde);
+            border-radius: 10px;
+            padding: 32px 24px;
+            width: 220px;
+            text-align: center;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--color-texto);
+            transition: transform 0.18s, border-color 0.18s;
+        }
+
+        .tarjeta-menu:hover {
+            transform: translateY(-4px);
+            border-color: var(--color-amarillo);
+        }
+
+        .tarjeta-icono {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+        }
+
+        .tarjeta-menu h2 {
+            font-size: 1rem;
+            color: var(--color-amarillo-claro);
+            margin-bottom: 6px;
+        }
+
+        .tarjeta-menu p {
+            font-size: 0.8rem;
+            color: var(--color-texto-medio);
+        }
+
+        .boton-salir {
+            margin-top: 8px;
+            margin-bottom: 32px;
+            padding: 9px 24px;
+            background: transparent;
+            border: 1px solid var(--color-borde);
+            border-radius: 6px;
+            color: var(--color-texto-medio);
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: border-color 0.18s, color 0.18s;
+        }
+
+        .boton-salir:hover {
+            border-color: var(--color-rojo-claro);
+            color: var(--color-rojo-claro);
+        }
+    </style>
 </head>
 
 <body>
+    <div class="encabezado-pagina">
+        <h1>GymCRUD — Sistema de Gestión</h1>
+        <p>Programación 2 (PR2) · Universidad Columbia del Paraguay</p>
+    </div>
 
+    <p class="bienvenida">Bienvenido, <span id="nombreUsuario"></span></p>
+
+    <div class="contenedor-tarjetas">
+        <a href="clientes.html" class="tarjeta-menu">
+            <div class="tarjeta-icono">👥</div>
+            <h2>Clientes</h2>
+            <p>Registrar, consultar, editar y eliminar clientes.</p>
+        </a>
+
+        <a href="membresias.html" class="tarjeta-menu">
+            <div class="tarjeta-icono">📆</div>
+            <h2>Membresías</h2>
+            <p>Ver, editar y actualizar los planes de membresía del gym.</p>
+        </a>
+
+        <a href="pagos.html" class="tarjeta-menu">
+            <div class="tarjeta-icono">💲</div>
+            <h2>Pagos</h2>
+            <p>Registrar y monitorear los pagos de los usuarios.</p>
+        </a>
+    </div>
+
+    <script>
+        const nombre = sessionStorage.getItem('usuarioActivo');
+        if (!nombre) {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('nombreUsuario').textContent = nombre;
+        }
+
+        function cerrarSesion() {
+            sessionStorage.removeItem('usuarioActivo');
+            window.location.href = 'login.html';
+        }
+    </script>
+
+    <button class="boton-salir" onclick="cerrarSesion()">Cerrar Sesión</button>
 </body>
 
 </html>
