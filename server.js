@@ -1,8 +1,3 @@
-// ============================================================
-//  server.js — Punto de entrada del servidor
-//  Programación 2 (PR2) — Universidad Columbia del Paraguay
-// ============================================================
-
 const express    = require('express');
 const bodyParser = require('body-parser');
 const path       = require('path');
