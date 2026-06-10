@@ -1,9 +1,16 @@
+// ============================================================
+//  server.js — Punto de entrada del servidor
+//  Programación 2 (PR2) — Universidad Columbia del Paraguay
+// ============================================================
 
 const express    = require('express');
 const bodyParser = require('body-parser');
 const path       = require('path');
 
 const rutaLogin      = require('./routes/login');
+const rutaClientes   = require('./routes/clientes');
+const rutaMembresias = require('./routes/membresias');
+const rutaPagos      = require('./routes/pagos');
 
 const app = express();
 
@@ -21,6 +28,9 @@ app.get('/', (req, res) => {
 
 // ── Rutas de la API ──────────────────────────────────────────
 app.use('/api', rutaLogin);
+app.use('/api', rutaClientes);
+app.use('/api', rutaMembresias);
+app.use('/api', rutaPagos);
 
 // ── Arranque ─────────────────────────────────────────────────
 const PUERTO = 3000;

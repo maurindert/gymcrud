@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagos — GymCRUD</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        .contenedor-pagina {
+            width: 100%;
+            max-width: 960px;
+            padding: 28px 16px;
+        }
+
+        .barra-superior {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .barra-superior h2 {
+            font-size: 1.15rem;
+            color: var(--color-amarillo-claro);
+            font-weight: 700;
+        }
+
+        .formulario-inline {
+            background: var(--color-superficie);
+            border: 1px solid var(--color-borde);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .formulario-inline.visible {
+            display: block;
+        }
+
+        .formulario-inline h3 {
+            font-size: 1rem;
+            color: var(--color-amarillo-claro);
+            margin-bottom: 14px;
+        }
+
+        .fila-campos {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .fila-campos .campo-formulario {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 0;
+        }
+
+        .fila-botones {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        a.volver {
+            font-size: 0.85rem;
+            color: var(--color-texto-medio);
+            text-decoration: none;
+        }
+
+        a.volver:hover {
+            color: var(--color-amarillo-claro);
+        }
+
+        .acciones {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Semáforo de vencimiento */
+        .badge-pago {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .badge-pago.vigente {
+            background: #3a3a1d;
+            color: var(--color-verde-claro);
+        }
+
+        .badge-pago.vencido {
+            background: #3a1d1d;
+            color: var(--color-rojo-claro);
+        }
+
+        .badge-pago.proximo {
+            background: #3a2e1d;
+            color: var(--color-naranja-claro);
+        }
+
+        tbody tr.fila-vencida {
+            border-left: 3px solid var(--color-rojo-claro);
+        }
+
+        tbody tr.fila-proxima {
+            border-left: 3px solid var(--color-naranja-claro);
+        }
+
+        tbody tr.fila-vigente {
+            border-left: 3px solid var(--color-verde-claro);
+        }
+
+        /* Gráficos */
+        .seccion-graficos {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .tarjeta-grafico {
+            background: var(--color-superficie);
+            border: 1px solid var(--color-borde);
+            border-radius: 10px;
+            padding: 20px;
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .tarjeta-grafico h3 {
+            font-size: 0.95rem;
+            color: var(--color-amarillo-claro);
+            margin-bottom: 14px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="encabezado-pagina">
+        <h1>GymCRUD — Pagos</h1>
+        <p>Programación 2 (PR2) · Universidad Columbia del Paraguay</p>
+    </div>
+
+    <div class="contenedor-pagina">
+
+        <div class="barra-superior">
+            <h2>Listado de pagos</h2>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <a href="/menu.html" class="volver">← Volver al menú</a>
+                <button class="boton-principal" style="width:auto; padding:9px 18px;" onclick="mostrarFormulario()">+
+                    Nuevo pago</button>
+            </div>
+        </div>
+
+        <!-- Formulario nuevo pago -->
+        <div id="formularioPago" class="formulario-inline">
+            <h3>Registrar pago</h3>
+            <div class="fila-campos">
+                <select id="clienteSelect" class="campo-formulario">
+                    <option value="">— Seleccionar cliente —</option>
+                </select>
+                <select id="membresiaSelect" class="campo-formulario">
+                    <option value="">— Seleccionar membresía —</option>
+                </select>
+            </div>
+            <div class="fila-botones">
+                <button class="boton-principal" style="width:auto; padding:9px 18px;"
+                    onclick="guardarPago()">Guardar</button>
+                <button class="boton-secundario" onclick="ocultarFormulario()">Cancelar</button>
+            </div>
+        </div>
+
+        <div id="areaDeResultado" class="area-mensaje"></div>
+
+        <!-- Gráficos -->
+        <div class="seccion-graficos">
+            <div class="tarjeta-grafico">
+                <h3>Recaudación por membresía</h3>
+                <canvas id="graficoRecaudacion"></canvas>
+            </div>
+            <div class="tarjeta-grafico">
+                <h3>Estado de pagos</h3>
+                <canvas id="graficoEstado"></canvas>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="contenedor-tabla">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Cliente</th>
+                        <th>Membresía</th>
+                        <th>Precio (Gs.)</th>
+                        <th>Fecha pago</th>
+                        <th>Vencimiento</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTabla">
+                    <tr>
+                        <td colspan="8" style="text-align:center; color:var(--color-texto-medio);">Cargando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        const apiPagos = '/api/pagos';
+        const apiClientes = '/api/clientes';
+        const apiMembresias = '/api/membresias';
+
+        let graficoRecaudacion = null;
+        let graficoEstado = null;
+
+        // ── Mensajes ─────────────────────────────────────────────
+        function mostrarMensaje(texto, tipo) {
+            const area = document.getElementById('areaDeResultado');
+            area.textContent = texto;
+            area.className = 'area-mensaje ' + tipo;
+            setTimeout(() => { area.className = 'area-mensaje'; }, 3000);
+        }
+
+        // ── Formato fecha ─────────────────────────────────────────
+        function formatearFecha(valor) {
+            if (!valor) return '—';
+            return new Date(valor).toLocaleDateString('es-PY');
+        }
+
+        // ── Clasificar pago ───────────────────────────────────────
+        // Vigente, Próximo a vencer (≤7 días), Vencido
+        function clasificarPago(estadoOracle, fechaVenc) {
+            if (estadoOracle === 'Vencido') return 'vencido';
+            const diasRestantes = Math.ceil(
+                (new Date(fechaVenc) - new Date()) / (1000 * 60 * 60 * 24)
+            );
+            if (diasRestantes <= 7) return 'proximo';
+            return 'vigente';
+        }
+
+        // ── Formulario ────────────────────────────────────────────
+        async function mostrarFormulario() {
+            document.getElementById('formularioPago').classList.add('visible');
+            await cargarSelectores();
+        }
+
+        function ocultarFormulario() {
+            document.getElementById('formularioPago').classList.remove('visible');
+        }
+
+        async function cargarSelectores() {
+            try {
+                const [resClientes, resMembresias] = await Promise.all([
+                    fetch(apiClientes),
+                    fetch(apiMembresias)
+                ]);
+                const clientes = await resClientes.json();
+                const membresias = await resMembresias.json();
+
+                const selCliente = document.getElementById('clienteSelect');
+                selCliente.innerHTML = '<option value="">— Seleccionar cliente —</option>';
+                clientes
+                    .filter(c => c.ACTIVO === 1)
+                    .forEach(c => {
+                        selCliente.innerHTML +=
+                            `<option value="${c.CLIENTE_ID}">${c.NOMBRE} ${c.APELLIDO}</option>`;
+                    });
+
+                const selMembresia = document.getElementById('membresiaSelect');
+                selMembresia.innerHTML = '<option value="">— Seleccionar membresía —</option>';
+                membresias.forEach(m => {
+                    const precio = Number(m.PRECIO).toLocaleString('es-PY');
+                    selMembresia.innerHTML +=
+                        `<option value="${m.MEMBRESIA_ID}">${m.DESCRIPCION} — Gs. ${precio}</option>`;
+                });
+
+            } catch (err) {
+                mostrarMensaje('Error al cargar selectores', 'error');
+            }
+        }
+
+        // ── Cargar tabla ──────────────────────────────────────────
+        async function cargarPagos() {
+            try {
+                const respuesta = await fetch(apiPagos);
+                const pagos = await respuesta.json();
+
+                const cuerpo = document.getElementById('cuerpoTabla');
+                cuerpo.innerHTML = '';
+
+                if (pagos.length === 0) {
+                    cuerpo.innerHTML =
+                        '<tr><td colspan="8" style="text-align:center; color:var(--color-texto-medio);">No hay pagos registrados</td></tr>';
+                } else {
+                    let vigentes = 0, proximos = 0, vencidos = 0;
+
+                    pagos.forEach(p => {
+                        const clase = clasificarPago(p.ESTADO_PAGO, p.FECHA_VENCIMIENTO);
+                        const precio = Number(p.PRECIO).toLocaleString('es-PY');
+
+                        let badgeTexto, badgeClase;
+                        if (clase === 'vencido') { badgeTexto = 'Vencido'; badgeClase = 'vencido'; vencidos++; }
+                        if (clase === 'proximo') { badgeTexto = 'Próximo a vencer'; badgeClase = 'proximo'; proximos++; }
+                        if (clase === 'vigente') { badgeTexto = 'Vigente'; badgeClase = 'vigente'; vigentes++; }
+
+                        cuerpo.innerHTML += `
+              <tr class="fila-${clase}">
+                <td>${p.PAGO_ID}</td>
+                <td>${p.CLIENTE}</td>
+                <td>${p.MEMBRESIA}</td>
+                <td>Gs. ${precio}</td>
+                <td>${formatearFecha(p.FECHA_PAGO)}</td>
+                <td>${formatearFecha(p.FECHA_VENCIMIENTO)}</td>
+                <td><span class="badge-pago ${badgeClase}">${badgeTexto}</span></td>
+                <td class="acciones">
+                  <button class="boton-peligro"
+                          onclick="eliminarPago(${p.PAGO_ID})">Eliminar</button>
+                </td>
+              </tr>`;
+                    });
+
+                    cargarGraficos(vigentes, proximos, vencidos);
+                }
+
+            } catch (err) {
+                mostrarMensaje('Error al cargar pagos', 'error');
+            }
+        }
+
+        // ── Gráficos ──────────────────────────────────────────────
+        async function cargarGraficos(vigentes, proximos, vencidos) {
+            // Gráfico recaudación por membresía
+            try {
+                const respuesta = await fetch('/api/pagos/reporte');
+                const reporte = await respuesta.json();
+
+                const etiquetas = reporte.map(r => r.MEMBRESIA);
+                const totales = reporte.map(r => Number(r.TOTAL_RECAUDADO));
+
+                if (graficoRecaudacion) graficoRecaudacion.destroy();
+                graficoRecaudacion = new Chart(
+                    document.getElementById('graficoRecaudacion'), {
+                    type: 'bar',
+                    data: {
+                        labels: etiquetas,
+                        datasets: [{
+                            label: 'Recaudado (Gs.)',
+                            data: totales,
+                            backgroundColor: ['#458588', '#d79921', '#98971a'],
+                            borderColor: ['#83a598', '#fabd2f', '#b8bb26'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { labels: { color: '#ebdbb2' } } },
+                        scales: {
+                            x: { ticks: { color: '#a89984' }, grid: { color: '#3c3836' } },
+                            y: { ticks: { color: '#a89984' }, grid: { color: '#3c3836' } }
+                        }
+                    }
+                }
+                );
+            } catch (err) {
+                console.error('Error gráfico recaudación:', err);
+            }
+
+            // Gráfico estado de pagos — dona
+            if (graficoEstado) graficoEstado.destroy();
+            graficoEstado = new Chart(
+                document.getElementById('graficoEstado'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Vigente', 'Próximo a vencer', 'Vencido'],
+                    datasets: [{
+                        data: [vigentes, proximos, vencidos],
+                        backgroundColor: ['#98971a', '#d65d0e', '#cc241d'],
+                        borderColor: ['#b8bb26', '#fe8019', '#fb4934'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#ebdbb2' } } }
+                }
+            }
+            );
+        }
+
+        // ── Guardar pago ──────────────────────────────────────────
+        async function guardarPago() {
+            const cliente_id = document.getElementById('clienteSelect').value;
+            const membresia_id = document.getElementById('membresiaSelect').value;
+
+            if (!cliente_id || !membresia_id) {
+                mostrarMensaje('Seleccioná cliente y membresía', 'error');
+                return;
+            }
+
+            try {
+                const respuesta = await fetch(apiPagos, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cliente_id, membresia_id })
+                });
+                const resultado = await respuesta.json();
+
+                if (resultado.success) {
+                    mostrarMensaje(resultado.message, 'exito');
+                    ocultarFormulario();
+                    cargarPagos();
+                } else {
+                    mostrarMensaje(resultado.message, 'error');
+                }
+
+            } catch (err) {
+                mostrarMensaje('Error al registrar pago', 'error');
+            }
+        }
+
+        // ── Eliminar pago ─────────────────────────────────────────
+        async function eliminarPago(id) {
+            if (!confirm('¿Eliminar este pago?')) return;
+
+            try {
+                const respuesta = await fetch(`${apiPagos}/${id}`, { method: 'DELETE' });
+                const resultado = await respuesta.json();
+
+                if (resultado.success) {
+                    mostrarMensaje(resultado.message, 'exito');
+                    cargarPagos();
+                } else {
+                    mostrarMensaje(resultado.message, 'error');
+                }
+
+            } catch (err) {
+                mostrarMensaje('Error al eliminar pago', 'error');
+            }
+        }
+
+        // ── Arranque ──────────────────────────────────────────────
+        cargarPagos();
+    </script>
+
+</body>
+
+</html>

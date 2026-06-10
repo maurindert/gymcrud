@@ -1,0 +1,5 @@
+{
+  "watch": ["routes", "server.js", "js"],
+  "ext":   "js",
+  "ignore": ["public", "css"]
+}

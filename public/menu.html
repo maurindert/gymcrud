@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu — GymCRUD</title>
+    <title>Menú — GymCRUD</title>
     <link rel="stylesheet" href="../css/styles.css">
     <style>
         .bienvenida {
@@ -83,6 +83,7 @@
 </head>
 
 <body>
+
     <div class="encabezado-pagina">
         <h1>GymCRUD — Sistema de Gestión</h1>
         <p>Programación 2 (PR2) · Universidad Columbia del Paraguay</p>
@@ -91,24 +92,28 @@
     <p class="bienvenida">Bienvenido, <span id="nombreUsuario"></span></p>
 
     <div class="contenedor-tarjetas">
+
         <a href="clientes.html" class="tarjeta-menu">
-            <div class="tarjeta-icono">👥</div>
+            <div class="tarjeta-icono">🏋️</div>
             <h2>Clientes</h2>
-            <p>Registrar, consultar, editar y eliminar clientes.</p>
+            <p>Registrar, consultar, editar y eliminar clientes</p>
         </a>
 
         <a href="membresias.html" class="tarjeta-menu">
             <div class="tarjeta-icono">📆</div>
             <h2>Membresías</h2>
-            <p>Ver, editar y actualizar los planes de membresía del gym.</p>
+            <p>Gestionar los tipos de membresía disponibles</p>
         </a>
 
         <a href="pagos.html" class="tarjeta-menu">
             <div class="tarjeta-icono">💲</div>
             <h2>Pagos</h2>
-            <p>Registrar y monitorear los pagos de los usuarios.</p>
+            <p>Registrar pagos y ver reporte con gráfico</p>
         </a>
+
     </div>
+
+    <button class="boton-salir" onclick="cerrarSesion()">Cerrar sesión</button>
 
     <script>
         const nombre = sessionStorage.getItem('usuarioActivo');
@@ -124,7 +129,6 @@
         }
     </script>
 
-    <button class="boton-salir" onclick="cerrarSesion()">Cerrar Sesión</button>
 </body>
 
 </html>

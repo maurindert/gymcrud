@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes — GymCRUD</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        .contenedor-pagina {
+            width: 100%;
+            max-width: 960px;
+            padding: 28px 16px;
+        }
+
+        .barra-superior {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .barra-superior h2 {
+            font-size: 1.15rem;
+            color: var(--color-amarillo-claro);
+            font-weight: 700;
+        }
+
+        .formulario-inline {
+            background: var(--color-superficie);
+            border: 1px solid var(--color-borde);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .formulario-inline.visible {
+            display: block;
+        }
+
+        .formulario-inline h3 {
+            font-size: 1rem;
+            color: var(--color-amarillo-claro);
+            margin-bottom: 14px;
+        }
+
+        .fila-campos {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .fila-campos .campo-formulario {
+            flex: 1;
+            min-width: 160px;
+            margin-bottom: 0;
+        }
+
+        .fila-botones {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .badge-activo {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .badge-activo.si {
+            background: #3a3a1d;
+            color: var(--color-verde-claro);
+        }
+
+        .badge-activo.no {
+            background: #3a1d1d;
+            color: var(--color-rojo-claro);
+        }
+
+        .acciones {
+            display: flex;
+            gap: 8px;
+        }
+
+        a.volver {
+            font-size: 0.85rem;
+            color: var(--color-texto-medio);
+            text-decoration: none;
+        }
+
+        a.volver:hover {
+            color: var(--color-amarillo-claro);
+        }
+
+        /* Gráficos */
+        .seccion-graficos {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .tarjeta-grafico {
+            background: var(--color-superficie);
+            border: 1px solid var(--color-borde);
+            border-radius: 10px;
+            padding: 20px;
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .tarjeta-grafico h3 {
+            font-size: 0.95rem;
+            color: var(--color-amarillo-claro);
+            margin-bottom: 14px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="encabezado-pagina">
+        <h1>GymCRUD — Clientes</h1>
+        <p>Programación 2 (PR2) · Universidad Columbia del Paraguay</p>
+    </div>
+
+    <div class="contenedor-pagina">
+
+        <div class="barra-superior">
+            <h2>Listado de clientes</h2>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <a href="/menu.html" class="volver">← Volver al menú</a>
+                <button class="boton-principal" style="width:auto; padding:9px 18px;" onclick="mostrarFormulario()">+
+                    Nuevo cliente</button>
+            </div>
+        </div>
+
+        <!-- Formulario alta / edición -->
+        <div id="formularioCliente" class="formulario-inline">
+            <h3 id="tituloFormulario">Nuevo cliente</h3>
+            <input type="hidden" id="clienteId">
+            <div class="fila-campos">
+                <input type="text" id="nombre" class="campo-formulario" placeholder="Nombre" required>
+                <input type="text" id="apellido" class="campo-formulario" placeholder="Apellido" required>
+                <input type="text" id="telefono" class="campo-formulario" placeholder="Teléfono">
+            </div>
+            <div class="fila-campos" style="margin-top:12px;">
+                <select id="sexo" class="campo-formulario">
+                    <option value="">— Sexo —</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                </select>
+                <input type="date" id="fecha_nacimiento" class="campo-formulario">
+                <select id="tipo_ejercicio" class="campo-formulario">
+                    <option value="">— Tipo de ejercicio —</option>
+                    <option value="Musculacion">Musculación</option>
+                    <option value="Cardio">Cardio</option>
+                    <option value="Crossfit">Crossfit</option>
+                    <option value="Yoga">Yoga</option>
+                    <option value="Pilates">Pilates</option>
+                    <option value="Artes Marciales">Artes Marciales</option>
+                </select>
+            </div>
+            <div id="campoActivo" style="margin-top:12px; display:none;">
+                <label style="color:var(--color-texto-medio); font-size:0.9rem;">
+                    <input type="checkbox" id="activo" style="margin-right:6px;">
+                    Cliente activo
+                </label>
+            </div>
+            <div class="fila-botones">
+                <button class="boton-principal" style="width:auto; padding:9px 18px;"
+                    onclick="guardarCliente()">Guardar</button>
+                <button class="boton-secundario" onclick="ocultarFormulario()">Cancelar</button>
+            </div>
+        </div>
+
+        <div id="areaDeResultado" class="area-mensaje"></div>
+
+        <!-- Gráficos -->
+        <div class="seccion-graficos">
+            <div class="tarjeta-grafico">
+                <h3>Clientes por sexo</h3>
+                <canvas id="graficoPorSexo"></canvas>
+            </div>
+            <div class="tarjeta-grafico">
+                <h3>Clientes por tipo de ejercicio</h3>
+                <canvas id="graficoPorEjercicio"></canvas>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="contenedor-tabla">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Teléfono</th>
+                        <th>Sexo</th>
+                        <th>Edad</th>
+                        <th>Ejercicio</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTabla">
+                    <tr>
+                        <td colspan="9" style="text-align:center; color:var(--color-texto-medio);">Cargando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        const apiClientes = '/api/clientes';
+        let clientes = [];
+        let graficoPorSexo = null;
+        let graficoPorEjercicio = null;
+
+        // ── Mensajes ─────────────────────────────────────────────
+        function mostrarMensaje(texto, tipo) {
+            const area = document.getElementById('areaDeResultado');
+            area.textContent = texto;
+            area.className = 'area-mensaje ' + tipo;
+            setTimeout(() => { area.className = 'area-mensaje'; }, 3000);
+        }
+
+        // ── Formulario ────────────────────────────────────────────
+        function mostrarFormulario(cliente = null) {
+            document.getElementById('formularioCliente').classList.add('visible');
+            document.getElementById('campoActivo').style.display = cliente ? 'block' : 'none';
+
+            if (cliente) {
+                document.getElementById('tituloFormulario').textContent = 'Editar cliente';
+                document.getElementById('clienteId').value = cliente.CLIENTE_ID;
+                document.getElementById('nombre').value = cliente.NOMBRE;
+                document.getElementById('apellido').value = cliente.APELLIDO;
+                document.getElementById('telefono').value = cliente.TELEFONO || '';
+                document.getElementById('sexo').value = cliente.SEXO || '';
+                document.getElementById('tipo_ejercicio').value = cliente.TIPO_EJERCICIO || '';
+                document.getElementById('activo').checked = cliente.ACTIVO === 1;
+
+                // Fecha nacimiento: convertir a formato yyyy-mm-dd para el input date
+                if (cliente.FECHA_NACIMIENTO) {
+                    const f = new Date(cliente.FECHA_NACIMIENTO);
+                    document.getElementById('fecha_nacimiento').value =
+                        f.toISOString().split('T')[0];
+                } else {
+                    document.getElementById('fecha_nacimiento').value = '';
+                }
+
+            } else {
+                document.getElementById('tituloFormulario').textContent = 'Nuevo cliente';
+                document.getElementById('clienteId').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('apellido').value = '';
+                document.getElementById('telefono').value = '';
+                document.getElementById('sexo').value = '';
+                document.getElementById('fecha_nacimiento').value = '';
+                document.getElementById('tipo_ejercicio').value = '';
+            }
+        }
+
+        function ocultarFormulario() {
+            document.getElementById('formularioCliente').classList.remove('visible');
+        }
+
+        // ── Cargar tabla ──────────────────────────────────────────
+        async function cargarClientes() {
+            try {
+                const respuesta = await fetch(apiClientes);
+                clientes = await respuesta.json();
+
+                const cuerpo = document.getElementById('cuerpoTabla');
+                cuerpo.innerHTML = '';
+
+                if (clientes.length === 0) {
+                    cuerpo.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--color-texto-medio);">No hay clientes registrados</td></tr>';
+                    return;
+                }
+
+                clientes.forEach(c => {
+                    const activo = c.ACTIVO === 1
+                        ? '<span class="badge-activo si">Activo</span>'
+                        : '<span class="badge-activo no">Inactivo</span>';
+                    const sexo = c.SEXO === 'M' ? 'Masculino' : c.SEXO === 'F' ? 'Femenino' : '—';
+
+                    cuerpo.innerHTML += `
+            <tr>
+              <td>${c.CLIENTE_ID}</td>
+              <td>${c.NOMBRE}</td>
+              <td>${c.APELLIDO}</td>
+              <td>${c.TELEFONO || '—'}</td>
+              <td>${sexo}</td>
+              <td>${c.EDAD !== null ? c.EDAD + ' años' : '—'}</td>
+              <td>${c.TIPO_EJERCICIO || '—'}</td>
+              <td>${activo}</td>
+              <td class="acciones">
+                <button class="boton-secundario"
+                        onclick="mostrarFormulario(clientes[${clientes.indexOf(c)}])">Editar</button>
+                <button class="boton-peligro"
+                        onclick="desactivarCliente(${c.CLIENTE_ID})">Desactivar</button>
+              </td>
+            </tr>`;
+                });
+
+                cargarGraficos();
+
+            } catch (err) {
+                mostrarMensaje('Error al cargar clientes', 'error');
+            }
+        }
+
+        // ── Gráficos ──────────────────────────────────────────────
+        async function cargarGraficos() {
+            try {
+                const respuesta = await fetch('/api/clientes/reporte');
+                const reporte = await respuesta.json();
+
+                // Gráfico por sexo — dona
+                const sexoLabels = reporte.porSexo.map(r => r.SEXO === 'M' ? 'Masculino' : 'Femenino');
+                const sexoData = reporte.porSexo.map(r => r.TOTAL);
+
+                if (graficoPorSexo) graficoPorSexo.destroy();
+                graficoPorSexo = new Chart(document.getElementById('graficoPorSexo'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: sexoLabels,
+                        datasets: [{
+                            data: sexoData,
+                            backgroundColor: ['#458588', '#d79921'],
+                            borderColor: ['#83a598', '#fabd2f'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { labels: { color: '#ebdbb2' } }
+                        }
+                    }
+                });
+
+                // Gráfico por ejercicio — barras
+                const ejLabels = reporte.porEjercicio.map(r => r.TIPO_EJERCICIO);
+                const ejData = reporte.porEjercicio.map(r => r.TOTAL);
+
+                if (graficoPorEjercicio) graficoPorEjercicio.destroy();
+                graficoPorEjercicio = new Chart(document.getElementById('graficoPorEjercicio'), {
+                    type: 'bar',
+                    data: {
+                        labels: ejLabels,
+                        datasets: [{
+                            label: 'Clientes',
+                            data: ejData,
+                            backgroundColor: ['#98971a', '#458588', '#d79921', '#cc241d', '#d65d0e', '#b16286'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: { ticks: { color: '#a89984' }, grid: { color: '#3c3836' } },
+                            y: {
+                                ticks: { color: '#a89984', stepSize: 1 },
+                                grid: { color: '#3c3836' },
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+            } catch (err) {
+                console.error('Error al cargar gráficos:', err);
+            }
+        }
+
+        // ── Guardar ───────────────────────────────────────────────
+        async function guardarCliente() {
+            const id = document.getElementById('clienteId').value;
+            const nombre = document.getElementById('nombre').value.trim();
+            const apellido = document.getElementById('apellido').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const sexo = document.getElementById('sexo').value;
+            const fecha_nacimiento = document.getElementById('fecha_nacimiento').value;
+            const tipo_ejercicio = document.getElementById('tipo_ejercicio').value;
+            const activo = document.getElementById('activo').checked ? 1 : 0;
+
+            if (!nombre || !apellido) {
+                mostrarMensaje('Nombre y apellido son obligatorios', 'error');
+                return;
+            }
+
+            const datos = { nombre, apellido, telefono, sexo, fecha_nacimiento, tipo_ejercicio, activo };
+            const metodo = id ? 'PUT' : 'POST';
+            const url = id ? `${apiClientes}/${id}` : apiClientes;
+
+            try {
+                const respuesta = await fetch(url, {
+                    method: metodo,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+                const resultado = await respuesta.json();
+
+                if (resultado.success) {
+                    mostrarMensaje(resultado.message, 'exito');
+                    ocultarFormulario();
+                    cargarClientes();
+                } else {
+                    mostrarMensaje(resultado.message, 'error');
+                }
+
+            } catch (err) {
+                mostrarMensaje('Error al guardar cliente', 'error');
+            }
+        }
+
+        // ── Desactivar ────────────────────────────────────────────
+        async function desactivarCliente(id) {
+            if (!confirm('¿Desactivar este cliente?')) return;
+
+            try {
+                const respuesta = await fetch(`${apiClientes}/${id}`, { method: 'DELETE' });
+                const resultado = await respuesta.json();
+
+                if (resultado.success) {
+                    mostrarMensaje(resultado.message, 'exito');
+                    cargarClientes();
+                } else {
+                    mostrarMensaje(resultado.message, 'error');
+                }
+
+            } catch (err) {
+                mostrarMensaje('Error al desactivar cliente', 'error');
+            }
+        }
+
+        // ── Arranque ──────────────────────────────────────────────
+        cargarClientes();
+    </script>
+
+</body>
+
+</html>
