@@ -1,9 +1,9 @@
-# Dependencias (Nunca se suben porque son muy pesadas)
+# Dependencias
 node_modules/
 jspm_packages/
 web_modules/
 
-# Archivos de configuración local y secretos (¡Muy importante!)
+# Archivos de configuración local
 .env
 .env.local
 .env.development.local
@@ -12,7 +12,7 @@ web_modules/
 .env.sample
 *.env
 
-# Registros de errores (Logs)
+# Registros de errores
 logs
 *.log
 npm-debug.log*
@@ -20,7 +20,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Carpetas de compilación o producción (Si usas TypeScript o frameworks)
+# Carpetas de compilación o producción
 dist/
 build/
 .next/

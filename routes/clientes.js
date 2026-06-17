@@ -11,6 +11,7 @@ router.get('/clientes', async (req, res) => {
 
         const resultado = await conexion.execute(
             `SELECT cliente_id,
+                    ci,
                     nombre,
                     apellido,
                     telefono,
@@ -75,7 +76,7 @@ router.get('/clientes/reporte', async (req, res) => {
 
 // POST /api/clientes — crear nuevo
 router.post('/clientes', async (req, res) => {
-    const { nombre, apellido, telefono, sexo, fecha_nacimiento, tipo_ejercicio } = req.body;
+    const { nombre, apellido, telefono, sexo, fecha_nacimiento, tipo_ejercicio, ci } = req.body;
 
     if (!nombre || !apellido) {
         return res.status(400).json({ success: false, message: 'Nombre y apellido son obligatorios' });
@@ -86,10 +87,11 @@ router.post('/clientes', async (req, res) => {
         conexion = await oracledb.getConnection(config);
 
         await conexion.execute(
-            `INSERT INTO clientes (nombre, apellido, telefono, sexo, fecha_nacimiento, tipo_ejercicio)
-             VALUES (:nombre, :apellido, :telefono, :sexo,
+            `INSERT INTO clientes (ci, nombre, apellido, telefono, sexo, fecha_nacimiento, tipo_ejercicio)
+             VALUES (:ci, :nombre, :apellido, :telefono, :sexo,
                      TO_DATE(:fecha_nacimiento, 'YYYY-MM-DD'), :tipo_ejercicio)`,
             {
+                ci,
                 nombre,
                 apellido,
                 telefono:         telefono         || null,
@@ -113,7 +115,7 @@ router.post('/clientes', async (req, res) => {
 // PUT /api/clientes/:id — actualizar
 router.put('/clientes/:id', async (req, res) => {
     const { id } = req.params;
-    const { nombre, apellido, telefono, activo, sexo, fecha_nacimiento, tipo_ejercicio } = req.body;
+    const { nombre, apellido, telefono, activo, sexo, fecha_nacimiento, tipo_ejercicio, ci } = req.body;
 
     if (!nombre || !apellido) {
         return res.status(400).json({ success: false, message: 'Nombre y apellido son obligatorios' });
@@ -125,7 +127,8 @@ router.put('/clientes/:id', async (req, res) => {
 
         const resultado = await conexion.execute(
             `UPDATE clientes
-             SET    nombre           = :nombre,
+             SET    ci               = :ci,
+                    nombre           = :nombre,
                     apellido         = :apellido,
                     telefono         = :telefono,
                     activo           = :activo,
@@ -134,6 +137,7 @@ router.put('/clientes/:id', async (req, res) => {
                     tipo_ejercicio   = :tipo_ejercicio
              WHERE  cliente_id = :id`,
             {
+                ci,
                 nombre,
                 apellido,
                 telefono:         telefono         || null,

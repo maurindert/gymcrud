@@ -43,15 +43,18 @@ router.get('/pagos', async (req, res) => {
                     m.descripcion                          AS membresia,
                     m.precio,
                     p.fecha_pago,
-                    p.fecha_pago + m.duracion              AS fecha_vencimiento,
+                    p.fecha_inicio,
+                    p.fecha_inicio + m.duracion            AS fecha_vencimiento,
+                    p.tipo_operacion,
                     CASE
-                        WHEN SYSDATE > p.fecha_pago + m.duracion THEN 'Vencido'
+                        WHEN SYSDATE > p.fecha_inicio + m.duracion THEN 'Vencido'
                         ELSE 'Vigente'
                     END                                    AS estado_pago
-             FROM   pagos p
-             JOIN   clientes   c ON c.cliente_id   = p.cliente_id
-             JOIN   membresias m ON m.membresia_id = p.membresia_id
-             ORDER  BY p.pago_id`,
+            FROM   prg2.pagos p
+            JOIN   prg2.clientes   c ON c.cliente_id   = p.cliente_id
+            JOIN   prg2.membresias m ON m.membresia_id = p.membresia_id
+            WHERE  p.activo = 1
+            ORDER  BY p.pago_id`,
             {},
             { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
@@ -78,10 +81,34 @@ router.post('/pagos', async (req, res) => {
     try {
         conexion = await oracledb.getConnection(config);
 
+        const resVigente = await conexion.execute(
+            `SELECT MAX(fecha_inicio + m.duracion) AS fin_vigente
+             FROM   prg2.pagos p
+             JOIN   prg2.membresias m ON m.membresia_id = p.membresia_id
+             WHERE  p.cliente_id = :cliente_id
+             AND    p.activo = 1
+             AND    (p.fecha_inicio + m.duracion) > SYSDATE`,
+            { cliente_id },
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+
+        const finVigente = resVigente.rows[0].FIN_VIGENTE;
+        const fechaInicio = finVigente ? `DATE '${new Date(finVigente).toISOString().split('T')[0]}'` : 'SYSDATE';
+        const tipoOp = finVigente ? 'RENOVACION' : 'ALTA';
+
+        const resMem = await conexion.execute(
+            `SELECT membresia_id FROM prg2.membresias WHERE membresia_id = :membresia_id`,
+            { membresia_id },
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+
+        const memActual = resMem.rows[0];
+        const tipo = (finVigente && memActual) ? 'CAMBIO_PLAN' : tipoOp;
+
         await conexion.execute(
-            `INSERT INTO pagos (cliente_id, membresia_id)
-             VALUES (:cliente_id, :membresia_id)`,
-            { cliente_id, membresia_id },
+            `INSERT INTO prg2.pagos (cliente_id, membresia_id, fecha_pago, fecha_inicio, tipo_operacion)
+             VALUES (:cliente_id, :membresia_id, SYSDATE, ${fechaInicio}, :tipo_operacion)`,
+            { cliente_id, membresia_id, tipo_operacion: tipo },
             { autoCommit: true }
         );
 
@@ -104,7 +131,7 @@ router.delete('/pagos/:id', async (req, res) => {
         conexion = await oracledb.getConnection(config);
 
         const resultado = await conexion.execute(
-            `DELETE FROM pagos WHERE pago_id = :id`,
+            `UPDATE prg2.pagos SET activo = 0 WHERE pago_id = :id`,
             { id },
             { autoCommit: true }
         );
@@ -113,11 +140,11 @@ router.delete('/pagos/:id', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Pago no encontrado' });
         }
 
-        res.json({ success: true, message: 'Pago eliminado correctamente' });
+        res.json({ success: true, message: 'Pago anulado correctamente' });
 
     } catch (err) {
         console.error('[PAGOS DELETE]', err.message);
-        res.status(500).json({ success: false, message: 'Error al eliminar pago' });
+        res.status(500).json({ success: false, message: 'Error al anular pago' });
     } finally {
         if (conexion) await conexion.close();
     }

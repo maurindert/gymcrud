@@ -201,7 +201,9 @@
                         <th>Membresía</th>
                         <th>Precio (Gs.)</th>
                         <th>Fecha pago</th>
+                        <th>Inicio vigencia</th>
                         <th>Vencimiento</th>
+                        <th>Tipo</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -314,20 +316,28 @@
                         if (clase === 'proximo') { badgeTexto = 'Próximo a vencer'; badgeClase = 'proximo'; proximos++; }
                         if (clase === 'vigente') { badgeTexto = 'Vigente'; badgeClase = 'vigente'; vigentes++; }
 
+                        const tipoBadge = {
+                            'ALTA': '<span style="color:var(--color-azul-claro)">Alta</span>',
+                            'RENOVACION': '<span style="color:var(--color-verde-claro)">Renovación</span>',
+                            'CAMBIO_PLAN': '<span style="color:var(--color-naranja-claro)">Cambio plan</span>'
+                        }[p.TIPO_OPERACION] || p.TIPO_OPERACION;
+
                         cuerpo.innerHTML += `
-              <tr class="fila-${clase}">
-                <td>${p.PAGO_ID}</td>
-                <td>${p.CLIENTE}</td>
-                <td>${p.MEMBRESIA}</td>
-                <td>Gs. ${precio}</td>
-                <td>${formatearFecha(p.FECHA_PAGO)}</td>
-                <td>${formatearFecha(p.FECHA_VENCIMIENTO)}</td>
-                <td><span class="badge-pago ${badgeClase}">${badgeTexto}</span></td>
-                <td class="acciones">
-                  <button class="boton-peligro"
-                          onclick="eliminarPago(${p.PAGO_ID})">Eliminar</button>
-                </td>
-              </tr>`;
+                            <tr class="fila-${clase}">
+                                <td>${p.PAGO_ID}</td>
+                                <td>${p.CLIENTE}</td>
+                                <td>${p.MEMBRESIA}</td>
+                                <td>Gs. ${precio}</td>
+                                <td>${formatearFecha(p.FECHA_PAGO)}</td>
+                                <td>${formatearFecha(p.FECHA_INICIO)}</td>
+                                <td>${formatearFecha(p.FECHA_VENCIMIENTO)}</td>
+                                <td>${tipoBadge}</td>
+                                <td><span class="badge-pago ${badgeClase}">${badgeTexto}</span></td>
+                                <td class="acciones">
+                                    <button class="boton-peligro"
+                                            onclick="anularPago(${p.PAGO_ID})">Anular</button>
+                                </td>
+                            </tr>`;
                     });
 
                     cargarGraficos(vigentes, proximos, vencidos);
@@ -430,7 +440,7 @@
         }
 
         // ── Eliminar pago ─────────────────────────────────────────
-        async function eliminarPago(id) {
+        async function anularPago(id) {
             if (!confirm('¿Eliminar este pago?')) return;
 
             try {

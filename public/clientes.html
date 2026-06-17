@@ -146,6 +146,7 @@
             <h3 id="tituloFormulario">Nuevo cliente</h3>
             <input type="hidden" id="clienteId">
             <div class="fila-campos">
+                <input type="text" id="ci" class="campo-formulario" placeholder="Cédula de Identidad" required>
                 <input type="text" id="nombre" class="campo-formulario" placeholder="Nombre" required>
                 <input type="text" id="apellido" class="campo-formulario" placeholder="Apellido" required>
                 <input type="text" id="telefono" class="campo-formulario" placeholder="Teléfono">
@@ -200,6 +201,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
+                        <th>CI</th>
                         <th>Nombre</th>
                         <th>Apellido</th>
                         <th>Teléfono</th>
@@ -242,18 +244,19 @@
             if (cliente) {
                 document.getElementById('tituloFormulario').textContent = 'Editar cliente';
                 document.getElementById('clienteId').value = cliente.CLIENTE_ID;
+                document.getElementById('ci').value = cliente.CI || '';
                 document.getElementById('nombre').value = cliente.NOMBRE;
                 document.getElementById('apellido').value = cliente.APELLIDO;
                 document.getElementById('telefono').value = cliente.TELEFONO || '';
                 document.getElementById('sexo').value = cliente.SEXO || '';
                 document.getElementById('tipo_ejercicio').value = cliente.TIPO_EJERCICIO || '';
+                //document.getElementById('fecha_nacimiento').value = cliente.fecha_nacimiento || '';
                 document.getElementById('activo').checked = cliente.ACTIVO === 1;
 
                 // Fecha nacimiento: convertir a formato yyyy-mm-dd para el input date
                 if (cliente.FECHA_NACIMIENTO) {
-                    const f = new Date(cliente.FECHA_NACIMIENTO);
-                    document.getElementById('fecha_nacimiento').value =
-                        f.toISOString().split('T')[0];
+                    //const f = new Date(cliente.FECHA_NACIMIENTO);
+                    console.log('FECHA_NACIMIENTO raw:', cliente.FECHA_NACIMIENTO);
                 } else {
                     document.getElementById('fecha_nacimiento').value = '';
                 }
@@ -261,6 +264,7 @@
             } else {
                 document.getElementById('tituloFormulario').textContent = 'Nuevo cliente';
                 document.getElementById('clienteId').value = '';
+                document.getElementById('ci').value = '';
                 document.getElementById('nombre').value = '';
                 document.getElementById('apellido').value = '';
                 document.getElementById('telefono').value = '';
@@ -297,6 +301,7 @@
                     cuerpo.innerHTML += `
             <tr>
               <td>${c.CLIENTE_ID}</td>
+              <td>${c.CI || '—'}</td>
               <td>${c.NOMBRE}</td>
               <td>${c.APELLIDO}</td>
               <td>${c.TELEFONO || '—'}</td>
@@ -390,6 +395,7 @@
         // ── Guardar ───────────────────────────────────────────────
         async function guardarCliente() {
             const id = document.getElementById('clienteId').value;
+            const ci = document.getElementById('ci').value.trim();
             const nombre = document.getElementById('nombre').value.trim();
             const apellido = document.getElementById('apellido').value.trim();
             const telefono = document.getElementById('telefono').value.trim();
@@ -403,7 +409,7 @@
                 return;
             }
 
-            const datos = { nombre, apellido, telefono, sexo, fecha_nacimiento, tipo_ejercicio, activo };
+            const datos = { ci, nombre, apellido, telefono, sexo, fecha_nacimiento, tipo_ejercicio, activo };
             const metodo = id ? 'PUT' : 'POST';
             const url = id ? `${apiClientes}/${id}` : apiClientes;
 
